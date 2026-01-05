@@ -218,7 +218,7 @@ MAX_MEMORY_DEPTH = 20  # Remember last 20 messages
 
 ## 📄 License
 
-This is a personal project. Feel free to modify and use as you wish!
+MIT License - see [LICENSE](LICENSE) file for details
 
 ## 🙏 Credits
 
