@@ -14,6 +14,7 @@ openwakeword  # Efficient wake word detection
 psutil
 pyautogui
 keyboard
+requests
 
 # Image Processing
 pillow

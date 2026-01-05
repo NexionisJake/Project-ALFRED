@@ -1,10 +1,10 @@
-My name is Abhi.
-My WiFi password is "Jarvis123".
-I am working on a Python AI project called Jhangya.
-My favorite music genre is Lo-Fi.
-My dog's name is Max.
-My favorite color is blue.
+My name is Abhijeet.
+My WiFi password is "Realme 5 Pro".
+I am working on a Python AI project called A.L.F.R.E.D.
+My favorite music genre is Metal.
+My favorite color is red.
 I live in India.
-My GitHub username is abhi2.
+My current location is Bengaluru.
+My GitHub username is NexionisJake.
 Project started: January 2026
 My preferred IDE is VS Code.

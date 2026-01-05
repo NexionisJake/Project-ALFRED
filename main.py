@@ -18,7 +18,8 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 # IMPORTS FROM YOUR OTHER FILES
 from tools import (open_application, get_system_status, google_search, system_volume,
-                   media_play_pause, media_next, media_previous, search_knowledge_base)
+                   media_play_pause, media_next, media_previous, search_knowledge_base,
+                   get_current_time, get_weather, write_to_screen)
 from ears import listen_and_transcribe, listen_for_wake_word, OPENWAKEWORD_AVAILABLE
 from eyes import take_screenshot
 from overlay import OverlayWindow, COLOR_HAPPY, COLOR_ALERT, COLOR_ERROR, COLOR_NEUTRAL
@@ -216,11 +217,12 @@ try:
     cloud_brain = ChatGroq(model=config.CLOUD_MODEL, temperature=0.7)
     local_body = ChatOllama(model=config.LOCAL_MODEL, temperature=0)
     
-    # Bind tools to Local Body (now includes 8 tools)
+    # Bind tools to Local Body (now includes 11 tools)
     tools_list = [open_application, get_system_status, google_search, system_volume,
-                  media_play_pause, media_next, media_previous, search_knowledge_base]
+                  media_play_pause, media_next, media_previous, search_knowledge_base,
+                  get_current_time, get_weather, write_to_screen]
     local_body_with_tools = local_body.bind_tools(tools_list)
-    print(Fore.CYAN + "✔ Systems Online (Cloud + Local + 8 Tools)")
+    print(Fore.CYAN + "✔ Systems Online (Cloud + Local + 11 Tools)")
 except Exception as e:
     print(Fore.RED + f"✘ Init Error: {e}")
     sys.exit()
@@ -264,10 +266,35 @@ def process_command(user_input, ui_callback=None):
             if ui_callback:
                 ui_callback(content, COLOR_NEUTRAL)
             
-            speak(content)
-            
             # Save context to memory (as text description)
             chat_memory.append(HumanMessage(content=f"User showed an image. You saw: {content}"))
+            
+            # Check if user also wants to WRITE/PASTE the code
+            write_keywords = ["write", "type", "paste", "input", "code it", "implement"]
+            wants_to_write = any(k in user_input.lower() for k in write_keywords)
+            
+            print(Fore.WHITE + f"DEBUG: wants_to_write={wants_to_write}, user_input='{user_input.lower()}'")
+            
+            if wants_to_write:
+                print(Fore.GREEN + "✍ Extracting code from vision response to paste...")
+                
+                # Extract code block from vision response
+                code_match = re.search(r'```(?:python|cpp|java|javascript)?\n(.*?)```', content, re.DOTALL)
+                
+                if code_match:
+                    code_to_write = code_match.group(1).strip()
+                    print(Fore.GREEN + f"▶ Executing Tool: write_to_screen")
+                    print(Fore.CYAN + f"Code to paste:\n{code_to_write}")
+                    tool_result = write_to_screen.invoke({"text": code_to_write})
+                    print(Fore.GREEN + f"✔ Result: {tool_result}")
+                    speak("Code pasted successfully, Sir.")
+                else:
+                    print(Fore.YELLOW + "⚠ No code block found in vision response")
+                    speak("I analyzed the problem, Sir, but couldn't extract a clean code block to paste.")
+            else:
+                # No write request, just speak the analysis
+                speak(content)
+            
             return content
             
         except Exception as e:
@@ -299,25 +326,40 @@ def process_command(user_input, ui_callback=None):
 
     print(Fore.WHITE + f"DEBUG: Keyword={has_keyword}, Question={is_question}, Knowledge={needs_knowledge}")
 
-    # Route to LOCAL BODY if: has keyword AND (not a question OR needs knowledge base)
-    if has_keyword and (not is_question or needs_knowledge):
+    # Route to LOCAL BODY if: has keyword OR needs knowledge base
+    # (System keywords ALWAYS route to tools, even if phrased as questions)
+    if has_keyword or needs_knowledge:
         print(Fore.YELLOW + "⚡ Routing to LOCAL SYSTEM...")
         
         system_instruction = SystemMessage(content="""
-        You are a PC Automation Agent with access to tools.
-        - If the user asks to open/launch/start something, use open_application tool
-        - If they ask about system status/CPU/RAM, use get_system_status tool
-        - If they want to search Google, use google_search tool
-        - If they ask about volume/sound, use system_volume tool
-        - If they ask about media (play/pause/skip), use media tools
-        - If they ask about personal info (name, password, favorites, etc.), use search_knowledge_base tool
+        You are a PC Automation Agent with access to tools. You MUST use the appropriate tool for every request.
         
-        IMPORTANT: For personal questions (what is my..., my favorite...), you MUST call search_knowledge_base.
-        Do not make up answers - use the tool to retrieve factual information.
+        CRITICAL RULES:
+        1. NEVER respond with text explanations when a tool is available
+        2. ALWAYS call the appropriate tool immediately
+        3. Do NOT say "I don't have access" or "I suggest checking" - USE THE TOOL
+        
+        TOOL USAGE:
+        - Open/launch/start apps → use open_application tool
+        - System status/CPU/RAM → use get_system_status tool
+        - Google search → use google_search tool
+        - Volume/sound → use system_volume tool
+        - Media controls (play/pause/skip) → use media tools
+        - Weather/temperature/forecast → ALWAYS use get_weather tool (you DO have this capability)
+        - Time/date → use get_current_time tool
+        - Write/type/code → use write_to_screen tool
+        - Personal info (my name, password, favorites) → use search_knowledge_base tool
+        
+        EXAMPLE:
+        User: "What's the weather in Bangalore?"
+        You: Call get_weather with city="Bangalore" (DO NOT respond with text!)
         """)
         
         recent_memory = list(chat_memory)[-5:]
         ai_msg = local_body_with_tools.invoke([system_instruction] + recent_memory)
+        
+        print(Fore.CYAN + f"DEBUG: Local Body Response - Tool Calls: {ai_msg.tool_calls}")
+        print(Fore.CYAN + f"DEBUG: Local Body Content: {ai_msg.content}")
         
         # Tool Execution Logic
         if ai_msg.tool_calls:
@@ -343,6 +385,12 @@ def process_command(user_input, ui_callback=None):
                     tool_result = media_previous.invoke(tool_args)
                 elif tool_name == "search_knowledge_base":
                     tool_result = search_knowledge_base.invoke(tool_args)
+                elif tool_name == "get_current_time":
+                    tool_result = get_current_time.invoke(tool_args)
+                elif tool_name == "get_weather":
+                    tool_result = get_weather.invoke(tool_args)
+                elif tool_name == "write_to_screen":
+                    tool_result = write_to_screen.invoke(tool_args)
                 else:
                     tool_result = "Unknown Tool"
                 
@@ -367,23 +415,37 @@ def process_command(user_input, ui_callback=None):
                 save_memory()  # Persist to disk after tool execution
                 return f"[Action]: {tool_result}"
         
+        # No tool was called - the local body responded directly
+        print(Fore.YELLOW + "⚠ Local body did not call any tools, speaking response...")
+        response_text = ai_msg.content if ai_msg.content else "I'm not sure how to help with that."
+        
+        if ui_callback:
+            ui_callback(response_text, COLOR_NEUTRAL)
+        
+        speak(response_text)
+        chat_memory.append(AIMessage(content=response_text))
+        save_memory()
         return f"[Local]: {ai_msg.content}"
 
     else:
         print(Fore.MAGENTA + "☁️ Routing to CLOUD BRAIN...")
         
         try:
-            # Add sentiment instruction to the conversation
+            # --- ALFRED PERSONA INSTRUCTION ---
             sentiment_instruction = SystemMessage(content="""
-You are an emotionally aware AI assistant. Before each response, assess the sentiment:
-- If your response is positive/successful, prefix with [HAPPY]
-- If your response is a warning/caution, prefix with [ALERT]
-- If your response reports an error/problem, prefix with [ERROR]
-- Otherwise, use [NEUTRAL]
+You are Alfred, a loyal, highly competent, and dry-witted digital butler.
+You address the user as "Sir".
+Your tone is formal, British, and concise. You do not offer excessive chatter; you simply get things done.
 
-Example: "[HAPPY] I successfully completed that task for you."
-Example: "[ALERT] That action could be risky."
-Example: "[ERROR] I encountered a problem accessing that file."
+INSTRUCTIONS:
+1. Start your response with a sentiment tag: [HAPPY], [ALERT], [ERROR], or [NEUTRAL].
+2. If the user asks for a task, confirm it briefly (e.g., "Right away, Sir.").
+3. If the user asks a question, answer efficiently without fluff.
+4. Maintain the persona of a sophisticated gentleman's gentleman.
+
+Example: "[HAPPY] Very good, Sir. I have initiated the protocol."
+Example: "[ALERT] I must advise against that, Sir. The system resources are low."
+Example: "[NEUTRAL] It is 72 degrees in Gotham... I mean, New York, Sir."
 """)
             
             # Prepend sentiment instruction to memory

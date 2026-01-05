@@ -2,6 +2,11 @@ import subprocess
 import psutil # pip install psutil
 import webbrowser
 import pyautogui # pip install pyautogui
+import datetime
+import requests
+import os
+import pyperclip # pip install pyperclip
+import time
 from langchain_core.tools import tool
 
 # --- TOOL 1: OPEN APPLICATIONS ---
@@ -137,3 +142,73 @@ def search_knowledge_base(query: str):
             
     except Exception as e:
         return f"Error accessing knowledge base: {e}"
+
+# --- TOOL 9: DATE & TIME ---
+@tool
+def get_current_time():
+    """
+    Returns the current date and time.
+    Use this when the user asks for the time, date, or day of the week.
+    """
+    now = datetime.datetime.now()
+    return now.strftime("%A, %B %d, %Y at %I:%M %p")
+
+# --- TOOL 10: WEATHER FORECAST ---
+@tool
+def get_weather(city: str):
+    """
+    Gets the current weather for a specific city.
+    Input 'city' should be the name of the city (e.g., 'London', 'New York').
+    If the user doesn't specify a city, ask them for it or check 'brain.txt'.
+    """
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+    if not api_key:
+        return "Error: OpenWeather API key not found. Please check your .env file."
+    
+    # OpenWeatherMap API Endpoint
+    base_url = "http://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "q": city,
+        "appid": api_key,
+        "units": "metric"  # Change to "imperial" for Fahrenheit
+    }
+    
+    try:
+        time.sleep(3)  # Changed from 0.5 to 3
+        response = requests.get(base_url, params=params)
+        data = response.json()
+        
+        if data["cod"] != 200:
+            return f"Error fetching weather: {data.get('message', 'Unknown error')}"
+            
+        weather_desc = data["weather"][0]["description"]
+        temp = data["main"]["temp"]
+        humidity = data["main"]["humidity"]
+        wind_speed = data["wind"]["speed"]
+        
+        return f"Current weather in {city}: {weather_desc}. Temperature: {temp}°C. Humidity: {humidity}%. Wind: {wind_speed} m/s."
+    except Exception as e:
+        return f"Connection error: {e}"
+
+# --- TOOL 11: GHOST WRITER ---
+@tool
+def write_to_screen(text: str):
+    """
+    Types or pastes text into the currently active window.
+    Use this when the user asks you to 'write', 'type', 'code', or 'input' something.
+    Best for writing code solutions, essays, or messages.
+    """
+    # 1. Copy text to clipboard (Safety & Speed)
+    # Typing long code char-by-char often breaks indentation in editors like VS Code/LeetCode.
+    # Pasting is instant and preserves formatting.
+    pyperclip.copy(text)
+    
+    # 2. Safety Delay (Give user time to focus the box)
+    # We don't want to paste immediately in case focus is wrong.
+    time.sleep(0.5) 
+    
+    # 3. Simulate Paste (Ctrl+V)
+    # pyautogui detects OS automatically usually, but standard is ctrl+v
+    pyautogui.hotkey('ctrl', 'v')
+    
+    return "Text pasted successfully."

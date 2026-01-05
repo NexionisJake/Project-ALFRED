@@ -3,7 +3,7 @@ import math
 import random
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QHBoxLayout, QGraphicsDropShadowEffect
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QPointF, QRectF
-from PyQt6.QtGui import QPainter, QColor, QPen, QBrush, QRadialGradient, QPolygonF, QFont, QConicalGradient
+from PyQt6.QtGui import QPainter, QColor, QPen, QBrush, QRadialGradient, QPolygonF, QFont, QConicalGradient, QFontMetrics, QRegion
 
 # --- CONFIG ---
 COLOR_CYAN = QColor(0, 255, 255)
@@ -19,7 +19,7 @@ COLOR_NEUTRAL = QColor(0, 255, 255)    # Cyan - Default state
 
 class TechBubble(QWidget):
     """
-    A sci-fi text bubble with typewriter animation.
+    Advanced TechBubble with Dynamic Sizing and Auto-Scrolling.
     """
     def __init__(self, text=""):
         super().__init__()
@@ -28,34 +28,66 @@ class TechBubble(QWidget):
         self.opacity = 0.0
         self.target_opacity = 0.0
         
+        # Sizing Config
+        self.MAX_WIDTH = 400   # Maximum width (less wide than before)
+        self.MAX_HEIGHT = 300  # Maximum height before scrolling
+        self.MIN_HEIGHT = 80   # Minimum height for short texts
+        self.PADDING = 20
+        
         # Setup Font
-        self.font = QFont("Consolas", 12) # Increased size for readability
+        self.font = QFont("Consolas", 11) 
         self.font.setBold(False)
         
-        # Layout metrics
-        self.padding = 20
-        self.setFixedWidth(450)
-        self.setFixedHeight(200) # Fixed height to prevent jumping
+        # Initial geometry
+        self.setFixedWidth(self.MAX_WIDTH)
+        self.setFixedHeight(self.MIN_HEIGHT)
 
         # Typewriter Timer
         self.typewriter_timer = QTimer()
         self.typewriter_timer.timeout.connect(self.update_typewriter)
         self.char_index = 0
+        
+        # Scroll State
+        self.scroll_y = 0
+        self.max_scroll = 0  # Maximum scrollable distance
+        
+        # Enable mouse tracking for scroll events
+        self.setMouseTracking(True)
 
     def set_text(self, text):
         if not text:
             self.target_opacity = 0.0
-            self.full_text = ""
-            self.displayed_text = ""
             self.typewriter_timer.stop()
         else:
             self.full_text = text
             self.displayed_text = ""
             self.char_index = 0
             self.target_opacity = 1.0
-            # Speed: Faster for long text, slower for short text
+            self.scroll_y = 0 # Reset scroll
+            
+            # 1. CALCULATE REQUIRED SIZE
+            # We measure how tall the full text WILL be
+            metrics = QFontMetrics(self.font)
+            # Width available for text
+            text_width = self.MAX_WIDTH - (self.PADDING * 2)
+            
+            # Calculate bounding rect for the full text
+            rect = metrics.boundingRect(
+                0, 0, text_width, 0, 
+                Qt.TextFlag.TextWordWrap, 
+                text
+            )
+            
+            required_height = rect.height() + (self.PADDING * 2) + 10
+            
+            # 2. APPLY DYNAMIC SIZING
+            # Clamp between MIN and MAX
+            new_height = max(self.MIN_HEIGHT, min(required_height, self.MAX_HEIGHT))
+            self.setFixedHeight(new_height)
+            
+            # Start Typewriter
             speed = max(10, min(50, 1500 // len(text)))
-            self.typewriter_timer.start(speed) 
+            self.typewriter_timer.start(speed)
             
         self.update()
 
@@ -63,9 +95,46 @@ class TechBubble(QWidget):
         if self.char_index < len(self.full_text):
             self.displayed_text += self.full_text[self.char_index]
             self.char_index += 1
+            
+            # 3. AUTO-SCROLL LOGIC
+            # Measure height of currently visible text
+            metrics = QFontMetrics(self.font)
+            text_width = self.width() - (self.PADDING * 2)
+            
+            current_rect = metrics.boundingRect(
+                0, 0, text_width, 0, 
+                Qt.TextFlag.TextWordWrap, 
+                self.displayed_text
+            )
+            
+            text_height = current_rect.height()
+            visible_height = self.height() - (self.PADDING * 2)
+            
+            # Calculate max scroll distance
+            self.max_scroll = max(0, text_height - visible_height)
+            
+            # If text is taller than window, scroll up (auto-scroll to bottom)
+            if text_height > visible_height:
+                self.scroll_y = self.max_scroll
+            
             self.update()
         else:
             self.typewriter_timer.stop()
+    
+    def wheelEvent(self, event):
+        """Handle mouse wheel scrolling"""
+        # Get scroll delta (positive = scroll up, negative = scroll down)
+        delta = event.angleDelta().y()
+        
+        # Calculate new scroll position (inverted for natural scrolling)
+        scroll_amount = 30  # Pixels per wheel notch
+        self.scroll_y -= delta / 120 * scroll_amount
+        
+        # Clamp scroll_y between 0 and max_scroll
+        self.scroll_y = max(0, min(self.scroll_y, self.max_scroll))
+        
+        self.update()
+        event.accept()
 
     def paintEvent(self, event):
         if self.target_opacity == 0 and self.opacity < 0.01:
@@ -80,7 +149,7 @@ class TechBubble(QWidget):
         
         w, h = self.width(), self.height()
         
-        # 1. Background
+        # --- Draw Background (Dynamic Shape) ---
         cut = 15
         poly = QPolygonF([
             QPointF(cut, 0), QPointF(w, 0),
@@ -93,18 +162,32 @@ class TechBubble(QWidget):
         grad.setColorAt(1, QColor(0, 10, 20, 250))
         painter.setBrush(QBrush(grad))
         
-        pen = QPen(COLOR_CYAN)
+        # Tech Border Color (Based on state, defaulted to Cyan here)
+        pen = QPen(COLOR_CYAN) 
         pen.setWidth(2)
         painter.setPen(pen)
         painter.drawPolygon(poly)
         
-        # 2. Text
+        # --- Draw Text with Scroll Clip ---
+        # We must clip the text so it doesn't draw outside the box when scrolling
+        painter.setClipRegion(QRegion(poly.toPolygon()))
+        
         painter.setPen(COLOR_WHITE)
         painter.setFont(self.font)
-        text_rect = QRectF(self.padding, self.padding, w - 2*self.padding, h - 2*self.padding)
         
-        # Draw the PARTIAL text (typewriter effect)
-        painter.drawText(text_rect, int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop | Qt.TextFlag.TextWordWrap), self.displayed_text)
+        # Adjust text position by scroll_y
+        text_rect = QRectF(
+            self.PADDING, 
+            self.PADDING - self.scroll_y, # Shift up
+            w - 2*self.PADDING, 
+            10000 # Large height to allow full text measurement
+        )
+        
+        painter.drawText(
+            text_rect, 
+            int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop | Qt.TextFlag.TextWordWrap), 
+            self.displayed_text
+        )
 
 
 class JarvisReactor(QWidget):

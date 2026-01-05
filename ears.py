@@ -16,7 +16,7 @@ except ImportError:
 
 # --- CONFIGURATION ---
 # "tiny.en" is the fastest model. Use "base.en" if you want better accuracy.
-MODEL_SIZE = "tiny.en" 
+MODEL_SIZE = "base" 
 CHANNELS = 1
 RATE = 16000
 CHUNK = 1024
