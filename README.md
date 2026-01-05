@@ -136,17 +136,36 @@ ALFRED comes equipped with **11 integrated tools** out of the box:
 
 ## 📁 Project Structure
 
-```bash
+```text
 Project-ALFRED/
-├── main.py            # The Central Nervous System (Logic Loop)
-├── overlay.py         # The Face (PyQt6 Holographic GUI)
-├── tools.py           # The Hands (System Automation Tools)
-├── ears.py            # The Ears (Whisper + OpenWakeWord)
-├── eyes.py            # The Eyes (Vision Analysis)
-├── config.py          # Identity & Settings
-├── brain.txt          # Long-term Knowledge Base
-└── long_term_memory.json # Conversation History
-
+│
+├── 📂 core/                  # Core logic modules
+│   ├── __init__.py           # Package marker
+│   ├── ears.py               # The Ears (Whisper + OpenWakeWord)
+│   ├── eyes.py               # The Eyes (Vision Analysis)
+│   ├── overlay.py            # The Face (PyQt6 Holographic GUI)
+│   └── tools.py              # The Hands (System Automation Tools)
+│
+├── 📂 data/                  # Persistent data and memory
+│   ├── brain.txt             # Long-term Knowledge Base
+│   └── long_term_memory.json # Conversation History (auto-generated)
+│
+├── 📂 tests/                 # Diagnostic scripts
+│   ├── preflight_check.py    # System verification check
+│   ├── test_overlay.py       # GUI testing script
+│   └── test_sentiment.py     # Sentiment engine test
+│
+├── 📂 assets/                # Images and temp files
+│   ├── temp_speech.mp3       # (Auto-generated)
+│   └── temp_command.wav      # (Auto-generated)
+│
+├── .env                      # API Keys (Hidden in .gitignore)
+├── .gitignore                # Git ignore settings
+├── config.py                 # Identity & Settings
+├── LICENSE                   # MIT License
+├── main.py                   # The Central Nervous System (Main Loop)
+├── README.md                 # This file
+└── requirements.txt          # Python Dependencies
 ```
 
 ## 🛡️ Privacy & Security

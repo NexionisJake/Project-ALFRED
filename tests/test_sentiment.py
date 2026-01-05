@@ -4,9 +4,13 @@ This demonstrates how the Arc Reactor changes color based on context
 """
 
 import sys
+import os
+# Add the parent directory (Project JHANGYA) to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
-from overlay import OverlayWindow, COLOR_HAPPY, COLOR_ALERT, COLOR_ERROR, COLOR_NEUTRAL
+from core.overlay import OverlayWindow, COLOR_HAPPY, COLOR_ALERT, COLOR_ERROR, COLOR_NEUTRAL
 
 def test_sentiment_colors():
     """Cycle through different sentiment colors to test the visual feedback"""

@@ -122,7 +122,7 @@ def search_knowledge_base(query: str):
     """
     try:
         import os
-        brain_file = os.path.join(os.path.dirname(__file__), "brain.txt")
+        brain_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "brain.txt")
         
         if not os.path.exists(brain_file):
             return "Knowledge base not found. Please create a brain.txt file with your personal information."

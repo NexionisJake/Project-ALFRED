@@ -3,9 +3,13 @@ Quick test to preview the Jarvis Arc Reactor overlay.
 Run this to see the GUI without the full voice assistant.
 """
 import sys
+import os
+# Add the parent directory (Project JHANGYA) to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QTimer
-from overlay import OverlayWindow
+from core.overlay import OverlayWindow
 
 def demo_sequence(overlay):
     """Demo the different states"""

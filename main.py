@@ -17,12 +17,12 @@ from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import QThread, pyqtSignal
 
 # IMPORTS FROM YOUR OTHER FILES
-from tools import (open_application, get_system_status, google_search, system_volume,
+from core.tools import (open_application, get_system_status, google_search, system_volume,
                    media_play_pause, media_next, media_previous, search_knowledge_base,
                    get_current_time, get_weather, write_to_screen)
-from ears import listen_and_transcribe, listen_for_wake_word, OPENWAKEWORD_AVAILABLE
-from eyes import take_screenshot
-from overlay import OverlayWindow, COLOR_HAPPY, COLOR_ALERT, COLOR_ERROR, COLOR_NEUTRAL
+from core.ears import listen_and_transcribe, listen_for_wake_word, OPENWAKEWORD_AVAILABLE
+from core.eyes import take_screenshot
+from core.overlay import OverlayWindow, COLOR_HAPPY, COLOR_ALERT, COLOR_ERROR, COLOR_NEUTRAL
 import config
 
 init(autoreset=True)
@@ -52,7 +52,7 @@ conversation_summary = None  # Stores condensed conversation context
 VOICE = config.VOICE_NAME
 
 # --- LONG-TERM MEMORY PERSISTENCE ---
-MEMORY_FILE = os.path.join(os.path.dirname(__file__), "long_term_memory.json")
+MEMORY_FILE = os.path.join(os.path.dirname(__file__), "data", "long_term_memory.json")
 
 def save_memory():
     """Save chat memory to JSON file (serialization)"""

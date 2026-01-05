@@ -5,6 +5,9 @@ Verifies all components are properly configured
 
 import sys
 import os
+# Add the parent directory (Project JHANGYA) to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from colorama import Fore, init
 
 init(autoreset=True)
@@ -47,7 +50,7 @@ def check_tools():
     print(f"\n{Fore.CYAN}=== Checking Tools ==={Fore.RESET}")
     
     try:
-        from tools import (open_application, get_system_status, google_search, 
+        from core.tools import (open_application, get_system_status, google_search, 
                           system_volume, media_play_pause, media_next, 
                           media_previous, search_knowledge_base)
         
@@ -76,7 +79,7 @@ def check_overlay():
     print(f"\n{Fore.CYAN}=== Checking Overlay ==={Fore.RESET}")
     
     try:
-        from overlay import (OverlayWindow, COLOR_HAPPY, COLOR_ALERT, 
+        from core.overlay import (OverlayWindow, COLOR_HAPPY, COLOR_ALERT, 
                             COLOR_ERROR, COLOR_NEUTRAL)
         
         colors = ["COLOR_HAPPY", "COLOR_ALERT", "COLOR_ERROR", "COLOR_NEUTRAL"]
@@ -97,12 +100,12 @@ def main():
     print(f"{Fore.CYAN}=== Checking Core Files ==={Fore.RESET}")
     files_ok = all([
         check_file_exists("main.py"),
-        check_file_exists("tools.py"),
-        check_file_exists("overlay.py"),
-        check_file_exists("ears.py"),
-        check_file_exists("eyes.py"),
+        check_file_exists(os.path.join("core", "tools.py")),
+        check_file_exists(os.path.join("core", "overlay.py")),
+        check_file_exists(os.path.join("core", "ears.py")),
+        check_file_exists(os.path.join("core", "eyes.py")),
         check_file_exists("config.py"),
-        check_file_exists("brain.txt"),
+        check_file_exists(os.path.join("data", "brain.txt")),
         check_file_exists(".env"),
     ])
     

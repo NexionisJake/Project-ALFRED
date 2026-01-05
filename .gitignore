@@ -29,7 +29,7 @@ ENV/
 Thumbs.db
 
 # Memory and logs
-long_term_memory.json
+data/long_term_memory.json
 *.log
 
 # Testing
@@ -43,8 +43,11 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Audio files
+# Temporary audio files (in assets/)
+assets/temp_speech.mp3
+assets/temp_command.wav
 temp_speech.mp3
+temp_command.wav
 
 # Logs and notes
 *.log
