@@ -1,0 +1,28 @@
+# Core AI & LLM Dependencies
+langchain-groq
+langchain-ollama
+langchain-core
+
+# Audio Processing
+edge-tts
+pygame
+faster-whisper
+pyaudio
+openwakeword  # Efficient wake word detection
+
+# System Control & Automation
+psutil
+pyautogui
+keyboard
+
+# Image Processing
+pillow
+opencv-python
+mss
+
+# GUI Framework
+PyQt6
+
+# Environment & Utilities
+python-dotenv
+colorama

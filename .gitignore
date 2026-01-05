@@ -1,0 +1,57 @@
+# Environment variables
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Memory and logs
+long_term_memory.json
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Audio files
+temp_speech.mp3
+
+# Logs and notes
+*.log
+ajax_notes.txt
+chat_history.json
+usage_stats.json
+
+# Virtual environment
+venv/
+env/
