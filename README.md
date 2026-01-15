@@ -1,4 +1,5 @@
-# 🤵🏻‍♂️ ALFRED: Adaptive Logical Framework for Responsive Execution & Decisions
+# 🤵🏻‍♂️ PROJECT ALFRED
+## Adaptive Logical Framework for Responsive Execution & Decisions
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,7 +10,7 @@
 
 **ALFRED** is a sophisticated, hybrid AI desktop assistant designed to bridge the gap between cloud intelligence and local system control. Unlike standard chatbots, ALFRED acts as a fully autonomous agent that can **hear**, **speak**, **see**, and **act** on your computer.
 
-Featuring a **holographic Iron Man-style overlay**, ALFRED provides a visual connection to the AI's thought process, complete with sentiment-aware color shifting, real-time text generation, and "Ghost Writer" capabilities.
+Featuring a **holographic WayneTech-style overlay**, ALFRED provides a visual connection to the AI's thought process, complete with sentiment-aware color shifting, real-time text generation, and "Ghost Writer" capabilities.
 
 ---
 
@@ -35,11 +36,16 @@ ALFRED includes a **Ghost Writer** engine that can take control of your keyboard
 ### ⚛️ Reactive Holographic HUD
 A transparency-enabled PyQt6 overlay that sits on your desktop:
 * **Dynamic Speech Bubble:** Auto-resizes and auto-scrolls based on response length (teleprompter style).
-* **Sentiment Engine:** The Arc Reactor changes color based on the AI's emotional context:
+* **Sentiment Engine:** The Tactical Radar changes color based on the AI's emotional context:
     * 🟢 **Green:** Success / Happy
     * 🟠 **Orange:** Alert / Warning
     * 🔴 **Red:** Error / Critical
     * 🔵 **Cyan:** Neutral / Processing
+
+### 💾 Long-Term Memory
+* Conversations persist across sessions via encrypted storage
+* Automatic summarization every 10 messages
+* Loads previous context on startup
 
 ---
 
@@ -55,7 +61,7 @@ A transparency-enabled PyQt6 overlay that sits on your desktop:
 
 ```bash
 # 1. Clone the repository
-git clone [https://github.com/YourUsername/Project-ALFRED.git](https://github.com/YourUsername/Project-ALFRED.git)
+git clone https://github.com/NexionisJake/Project-ALFRED.git
 cd Project-ALFRED
 
 # 2. Install Python dependencies
@@ -63,7 +69,6 @@ pip install -r requirements.txt
 
 # 3. Pull the local model for tool execution
 ollama pull hermes3
-
 ```
 
 ### 3. Configuration
@@ -73,7 +78,6 @@ Create a `.env` file in the root directory:
 ```env
 GROQ_API_KEY=your_groq_key_here
 OPENWEATHER_API_KEY=your_weather_key_here
-
 ```
 
 (Optional) Customize `config.py` to change the voice or wake word:
@@ -82,14 +86,12 @@ OPENWEATHER_API_KEY=your_weather_key_here
 ASSISTANT_NAME = "Alfred"
 WAKE_WORD = "alfred"
 VOICE_NAME = "en-GB-RyanNeural" # British Butler Voice
-
 ```
 
 ### 4. Run ALFRED
 
 ```bash
 python main.py
-
 ```
 
 ---
@@ -132,6 +134,66 @@ ALFRED comes equipped with **11 integrated tools** out of the box:
 > **You:** *"Play some music and turn the volume up."*
 > **Alfred:** *"Playing Spotify and adjusting audio levels, Sir."*
 
+### Vision Commands
+
+> **You:** *"Look at my screen and describe what you see"*
+> **Alfred:** *"I can see your code editor with a Python file..."*
+
+---
+
+## 📊 System Architecture
+
+```
+┌─────────────────────────────────────────┐
+│          USER INTERACTION               │
+│  (Voice Input via Microphone)           │
+└───────────────┬─────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────┐
+│          EARS (Whisper STT)             │
+│  - Wake word detection                  │
+│  - Speech-to-text transcription         │
+└───────────────┬─────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────┐
+│     BRAIN (Hybrid Intelligence)         │
+│  ┌─────────────────────────────────┐   │
+│  │  Cloud Brain (Groq Llama 3.3)  │   │
+│  │  - Conversation                  │   │
+│  │  - Sentiment analysis            │   │
+│  └─────────────────────────────────┘   │
+│  ┌─────────────────────────────────┐   │
+│  │  Local Body (Ollama Hermes 3)   │   │
+│  │  - Tool execution                │   │
+│  │  - System commands               │   │
+│  └─────────────────────────────────┘   │
+│  ┌─────────────────────────────────┐   │
+│  │  Eyes (Llama Scout Vision)      │   │
+│  │  - Screen analysis               │   │
+│  └─────────────────────────────────┘   │
+└───────────────┬─────────────────────────┘
+                │
+        ┌───────┴────────┐
+        ▼                ▼
+┌──────────────┐  ┌─────────────────┐
+│    TOOLS     │  │  MEMORY SYSTEM  │
+│  11 Actions  │  │  - Short-term   │
+│              │  │  - Long-term    │
+│              │  │  - Knowledge    │
+└──────┬───────┘  └─────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│         OUTPUT SYSTEMS                  │
+│  ┌────────────────┐  ┌──────────────┐  │
+│  │  Voice (TTS)   │  │  GUI Overlay │  │
+│  │  Edge TTS      │  │  Tactical HUD│  │
+│  └────────────────┘  └──────────────┘  │
+└─────────────────────────────────────────┘
+```
+
 ---
 
 ## 📁 Project Structure
@@ -141,19 +203,35 @@ Project-ALFRED/
 │
 ├── 📂 core/                  # Core logic modules
 │   ├── __init__.py           # Package marker
+│   ├── brain.py              # The Brain (AI Processing)
 │   ├── ears.py               # The Ears (Whisper + OpenWakeWord)
 │   ├── eyes.py               # The Eyes (Vision Analysis)
 │   ├── overlay.py            # The Face (PyQt6 Holographic GUI)
-│   └── tools.py              # The Hands (System Automation Tools)
+│   ├── tools.py              # The Hands (System Automation Tools)
+│   ├── voice.py              # Voice synthesis
+│   ├── memory.py             # Memory management
+│   ├── encryption.py         # Data encryption
+│   ├── wake_word.py          # Wake word detection
+│   ├── sounds.py             # Sound effects
+│   └── app_launcher.py       # Application launcher
 │
 ├── 📂 data/                  # Persistent data and memory
 │   ├── brain.txt             # Long-term Knowledge Base
+│   ├── brain.txt.enc         # Encrypted knowledge base
 │   └── long_term_memory.json # Conversation History (auto-generated)
 │
 ├── 📂 tests/                 # Diagnostic scripts
 │   ├── preflight_check.py    # System verification check
 │   ├── test_overlay.py       # GUI testing script
-│   └── test_sentiment.py     # Sentiment engine test
+│   ├── test_encryption.py    # Encryption tests
+│   ├── test_memory.py        # Memory tests
+│   ├── test_tools_security.py # Security tests
+│   ├── test_utils.py         # Utility tests
+│   ├── test_all_tools.py     # All tools tests
+│   └── run_all_tests.py      # Master test runner
+│
+├── 📂 scripts/               # Utility scripts
+│   └── migrate_brain.py      # Migration utilities
 │
 ├── 📂 assets/                # Images and temp files
 │   ├── temp_speech.mp3       # (Auto-generated)
@@ -164,15 +242,45 @@ Project-ALFRED/
 ├── config.py                 # Identity & Settings
 ├── LICENSE                   # MIT License
 ├── main.py                   # The Central Nervous System (Main Loop)
+├── run_tests.py              # Test runner script
 ├── README.md                 # This file
 └── requirements.txt          # Python Dependencies
 ```
+
+---
+
+## 🐛 Troubleshooting
+
+**Issue**: Microphone not working
+- Check `ears.py` isn't running separately
+- Verify microphone permissions
+
+**Issue**: GUI not showing
+- Ensure PyQt6 is installed
+- Run `python tests/test_overlay.py` to test overlay
+
+**Issue**: Tools not working
+- Run `python tests/preflight_check.py`
+- Verify all imports are successful
+
+**Issue**: API errors
+- Check `.env` file has valid GROQ_API_KEY
+- Verify Ollama is running: `ollama list`
+
+**Issue**: High resource usage
+- Check `config.py` for performance settings
+- Consider disabling optional features
+
+---
 
 ## 🛡️ Privacy & Security
 
 * **API Security:** Keys are loaded via `.env` and never hardcoded.
 * **Local Execution:** Sensitive system commands (like opening apps) are parsed locally by Ollama, not sent to the cloud.
 * **Clipboard Safety:** The Ghost Writer tool uses `pyperclip` for safe text insertion.
+* **Encrypted Storage:** Sensitive data is encrypted at rest.
+
+---
 
 ## 🤝 Contributing
 
@@ -183,11 +291,27 @@ ALFRED is designed to be modular.
 3. Register it in `main.py`.
 4. Submit a Pull Request.
 
+---
+
+## 🏆 Credits
+
+- **LangChain** - AI framework
+- **Groq** - Cloud inference
+- **Ollama** - Local models
+- **Faster-Whisper** - Speech recognition
+- **Edge TTS** - Voice synthesis
+- **PyQt6** - GUI framework
+
+---
+
 ## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
 
+**🚀 SYSTEM STATUS: ALL SYSTEMS ONLINE**
+
 **Built with ❤️ for the future of AI.**
+
 *"We fall so that we can learn to pick ourselves up."*
