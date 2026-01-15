@@ -8,6 +8,10 @@ import os
 import pyperclip # pip install pyperclip
 import time
 from langchain_core.tools import tool
+from core.app_launcher import AppLauncher
+
+# Initialize Dynamic Launcher
+launcher = AppLauncher()
 
 # --- TOOL 1: OPEN APPLICATIONS ---
 
@@ -18,25 +22,67 @@ def open_application(app_name: str):
     Input 'app_name' should be the simple name of the app (e.g., 'calculator', 'notepad').
     Do not reply with text; use this tool.
     """
+    # 1. Dynamic Lookup (Start Menu)
+    path = launcher.get_app_path(app_name)
+    if path:
+        try:
+            print(f"Launching via Shortcut: {path}")
+            os.startfile(path)
+            return f"Successfully launched {app_name}."
+        except Exception as e:
+            return f"Found {app_name}, but failed to launch: {e}"
+
+    # 2. Hardcoded Fallback (System Apps / Special Commands)
     app_map = {
+        # Windows App Mappings
         "notepad": "notepad.exe",
         "calculator": "calc.exe",
         "chrome": "chrome.exe",
         "vscode": "code",
         "spotify": "spotify",
-        "cmd": "cmd.exe",
-        "explorer": "explorer.exe",
+        "terminal": "cmd.exe", # or powershell.exe
+        "explorer": "explorer",
         "edge": "msedge.exe",
-        "brave": "brave.exe"
+        "brave": "brave.exe",
+        
+        # Additional Windows Apps
+        "firefox": "firefox.exe",
+        "files": "explorer",
+        "settings": "ms-settings:",
+        "word": "winword.exe",
+        "excel": "excel.exe",
+        "powerpoint": "powerpnt.exe",
+        "discord": os.path.expandvars(r"%AppData%\Microsoft\Windows\Start Menu\Programs\Discord Inc\Discord PTB.lnk"),
+        "vlc": "vlc.exe",
+        "steam": "steam.exe",
+        "control panel": "control",
+        "task manager": "taskmgr",
     }
  
+    # Normalize input
+    key = app_name.lower()
     
-    # Try to find the app in our map, otherwise assume it's a direct command
-    target = app_map.get(app_name.lower(), app_name)
+    # STRICT LOOKUP: Only allow apps defined in the map
+    if key not in app_map:
+        return f"Error: '{app_name}' not found in installed apps or system map."
+    
+    target = app_map[key]
     
     try:
+        # Windows specific handling
+        if target.startswith("ms-settings:"):
+            os.startfile(target)
+            return f"Successfully launched {app_name}."
+            
+        # Try launching using subprocess
+        # On Windows, shell=True can be useful for finding commands in PATH if not direct executables,
+        # but Popen with list is generally safer.
+        # However, for things like 'explorer', it works better with Popen.
         subprocess.Popen(target, shell=True)
         return f"Successfully launched {app_name}."
+
+    except FileNotFoundError:
+        return f"Failed to launch {app_name}: Executable '{target}' not found. Is it installed and in your PATH?"
     except Exception as e:
         return f"Failed to launch {app_name}: {e}"
 
@@ -119,27 +165,46 @@ def search_knowledge_base(query: str):
     Use this when the user asks about personal information like WiFi passwords,
     pet names, favorite things, or any custom facts stored in the knowledge base.
     Input 'query' should be keywords to search for.
+    Supports both encrypted (.enc) and plain text formats.
     """
     try:
-        import os
+        from core.encryption import SecureKnowledgeBase
+        
         brain_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "brain.txt")
         
-        if not os.path.exists(brain_file):
-            return "Knowledge base not found. Please create a brain.txt file with your personal information."
-        
-        with open(brain_file, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Simple keyword search - find lines containing query words
-        query_lower = query.lower()
-        lines = content.split('\n')
-        matching_lines = [line for line in lines if query_lower in line.lower() and line.strip()]
+        # Initialize secure knowledge base (handles both encrypted and plain)
+        kb = SecureKnowledgeBase(brain_file)
+        matching_lines = kb.search(query)
         
         if matching_lines:
             return "From your knowledge base:\n" + "\n".join(matching_lines)
         else:
             return f"No information found in knowledge base for: {query}"
             
+    except (ImportError, RuntimeError):
+        # Fallback to plain text search if:
+        # - encryption module not available (ImportError)
+        # - running in non-interactive mode without password (RuntimeError)
+        try:
+            brain_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "brain.txt")
+            
+            if not os.path.exists(brain_file):
+                return "Knowledge base not found. Please create a brain.txt file with your personal information."
+            
+            with open(brain_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            query_lower = query.lower()
+            lines = content.split('\n')
+            matching_lines = [line for line in lines if query_lower in line.lower() and line.strip()]
+            
+            if matching_lines:
+                return "From your knowledge base:\n" + "\n".join(matching_lines)
+            else:
+                return f"No information found in knowledge base for: {query}"
+                
+        except Exception as e:
+            return f"Error accessing knowledge base: {e}"
     except Exception as e:
         return f"Error accessing knowledge base: {e}"
 
@@ -174,8 +239,7 @@ def get_weather(city: str):
     }
     
     try:
-        time.sleep(3)  # Changed from 0.5 to 3
-        response = requests.get(base_url, params=params)
+        response = requests.get(base_url, params=params, timeout=10)
         data = response.json()
         
         if data["cod"] != 200:

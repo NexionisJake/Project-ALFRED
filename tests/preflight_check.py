@@ -5,17 +5,26 @@ Verifies all components are properly configured
 
 import sys
 import os
+from unittest.mock import MagicMock
+
+# Mock GUI-dependent modules to avoid X11 display errors in headless environments
+sys.modules["pyautogui"] = MagicMock()
+sys.modules["pyperclip"] = MagicMock()
+
 # Add the parent directory (Project JHANGYA) to sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from colorama import Fore, init
+
+# Import safe symbols
+from test_utils import SYM_CHECK, SYM_FAIL, SYM_WARN
 
 init(autoreset=True)
 
 def check_file_exists(filename):
     """Check if a file exists"""
     exists = os.path.exists(filename)
-    status = Fore.GREEN + "✓" if exists else Fore.RED + "✗"
+    status = Fore.GREEN + SYM_CHECK if exists else Fore.RED + SYM_FAIL
     print(f"{status} {filename}")
     return exists
 
@@ -38,9 +47,9 @@ def check_imports():
     for module, desc in modules:
         try:
             __import__(module)
-            print(f"{Fore.GREEN}✓{Fore.RESET} {desc} ({module})")
+            print(f"{Fore.GREEN}{SYM_CHECK}{Fore.RESET} {desc} ({module})")
         except ImportError:
-            print(f"{Fore.RED}✗{Fore.RESET} {desc} ({module}) - MISSING!")
+            print(f"{Fore.RED}{SYM_FAIL}{Fore.RESET} {desc} ({module}) - MISSING!")
             all_good = False
     
     return all_good
@@ -66,12 +75,12 @@ def check_tools():
         ]
         
         for tool_name in tools:
-            print(f"{Fore.GREEN}✓{Fore.RESET} {tool_name}")
+            print(f"{Fore.GREEN}{SYM_CHECK}{Fore.RESET} {tool_name}")
         
         print(f"\n{Fore.GREEN}All 8 tools loaded successfully!{Fore.RESET}")
         return True
     except ImportError as e:
-        print(f"{Fore.RED}✗ Tool import failed: {e}{Fore.RESET}")
+        print(f"{Fore.RED}{SYM_FAIL} Tool import failed: {e}{Fore.RESET}")
         return False
 
 def check_overlay():
@@ -84,12 +93,12 @@ def check_overlay():
         
         colors = ["COLOR_HAPPY", "COLOR_ALERT", "COLOR_ERROR", "COLOR_NEUTRAL"]
         for color in colors:
-            print(f"{Fore.GREEN}✓{Fore.RESET} {color}")
+            print(f"{Fore.GREEN}{SYM_CHECK}{Fore.RESET} {color}")
         
         print(f"\n{Fore.GREEN}Sentiment Engine ready!{Fore.RESET}")
         return True
     except ImportError as e:
-        print(f"{Fore.RED}✗ Overlay import failed: {e}{Fore.RESET}")
+        print(f"{Fore.RED}{SYM_FAIL} Overlay import failed: {e}{Fore.RESET}")
         return False
 
 def main():
@@ -118,12 +127,12 @@ def main():
     print(f"{'='*50}{Fore.RESET}\n")
     
     if files_ok and imports_ok and tools_ok and overlay_ok:
-        print(f"{Fore.GREEN}✓ ALL SYSTEMS ONLINE{Fore.RESET}")
+        print(f"{Fore.GREEN}{SYM_CHECK} ALL SYSTEMS ONLINE{Fore.RESET}")
         print(f"\n{Fore.WHITE}Ready to launch!{Fore.RESET}")
         print(f"{Fore.YELLOW}Run: python main.py{Fore.RESET}")
         return 0
     else:
-        print(f"{Fore.RED}✗ SYSTEM CHECK FAILED{Fore.RESET}")
+        print(f"{Fore.RED}{SYM_FAIL} SYSTEM CHECK FAILED{Fore.RESET}")
         print(f"\n{Fore.YELLOW}Please fix the issues above before running.{Fore.RESET}")
         return 1
 

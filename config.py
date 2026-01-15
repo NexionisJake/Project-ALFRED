@@ -3,6 +3,10 @@
 # --- IDENTITY ---
 ASSISTANT_NAME = "Alfred"
 WAKE_WORD = "alfred"
+# Sensitivity of wake word detection (0.0 to 1.0). 
+# Lower value = easier to trigger (more false positives).
+# Higher value = harder to trigger (fewer false positives).
+WAKE_WORD_THRESHOLD = 0.5
 
 # --- MODELS ---
 CLOUD_MODEL = "llama-3.3-70b-versatile"
@@ -16,7 +20,19 @@ VOICE_NAME = "en-GB-RyanNeural"
 WHISPER_SIZE = "tiny.en"
 
 # --- MEMORY ---
-MAX_MEMORY_DEPTH = 10 
+MAX_MEMORY_DEPTH = 10
+
+# --- PERFORMANCE / RESOURCE CONTROL ---
+# Set to False to save ~1GB+ RAM by disabling semantic search features
+ENABLE_VECTOR_MEMORY = False
+
+# Set to False to skip loading local Ollama model (saves RAM if using cloud only)
+ENABLE_LOCAL_MODEL = True
+
+# Animation frame rates (lower = less CPU usage)
+OVERLAY_ANIMATION_INTERVAL = 60    # ms (default was 30)
+WAVEFORM_ANIMATION_INTERVAL = 100  # ms (default was 50)
+DIAGNOSTICS_UPDATE_INTERVAL = 5000 # ms (default was 2000)
 
 # --- VISION KEYWORDS ---
 VISION_KEYWORDS = ["look", "see", "screen", "what is this", "describe", "read"]

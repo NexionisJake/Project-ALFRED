@@ -15,6 +15,7 @@ psutil
 pyautogui
 keyboard
 requests
+pywin32
 
 # Image Processing
 pillow
@@ -27,3 +28,12 @@ PyQt6
 # Environment & Utilities
 python-dotenv
 colorama
+pyperclip
+
+# Security - Encryption
+cryptography
+
+# Vector Memory & Semantic Search (Optional - for advanced features)
+chromadb
+sentence-transformers
+sounddevice  # For wake word training
